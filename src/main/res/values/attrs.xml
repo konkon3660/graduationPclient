@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="JoystickView">
+        <attr name="JV_buttonColor" format="color" />
+        <attr name="JV_borderColor" format="color" />
+        <attr name="JV_borderAlpha" format="float" />
+        <attr name="JV_backgroundColor" format="color" />
+        <attr name="JV_borderWidth" format="dimension" />
+        <attr name="JV_fixedCenter" format="boolean" />
+        <attr name="JV_autoReCenterButton" format="boolean" />
+        <attr name="JV_buttonStickToBorder" format="boolean" />
+        <attr name="JV_buttonImage" format="reference" />
+        <attr name="JV_enabled" format="boolean" />
+        <attr name="JV_buttonSizeRatio" format="float" />
+        <attr name="JV_backgroundSizeRatio" format="float" />
+        <attr name="JV_buttonDirection">
+            <enum name="both" value="0"/>
+            <enum name="horizontal" value="1"/>
+            <enum name="vertical" value="2"/>
+        </attr>
+    </declare-styleable>
+</resources>

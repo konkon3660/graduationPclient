@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center_horizontal">
+
+        <!-- 카메라 뷰 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:layout_marginBottom="16dp">
+
+            <WebView
+                android:id="@+id/mjpegWebView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- 상태 정보 카드 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/commandText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🤖 현재 상태: 대기 중"
+                    android:textSize="16sp"
+                    android:textColor="#2E7D32" />
+
+                <TextView
+                    android:id="@+id/distanceText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📏 거리: -- cm"
+                    android:textSize="14sp"
+                    android:textColor="#424242"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 모드 전환 토글 버튼 -->
+        <ToggleButton
+            android:id="@+id/toggleMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:textOn="⚙️ 인터랙션 모드"
+            android:textOff="🕹️ 로봇 제어 모드"
+            android:checked="false" />
+
+        <!-- 로봇 제어 컨테이너 (기본) -->
+        <LinearLayout
+            android:id="@+id/robotControlContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:visibility="visible">
+
+            <!-- 조이스틱 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎮 로봇 이동"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#1976D2"
+                android:layout_marginBottom="8dp" />
+
+            <com.example.graduateproject.joystick.JoystickView
+                android:id="@+id/joystickView"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                app:JV_backgroundColor="#E3F2FD"
+                app:JV_borderColor="#1976D2"
+                app:JV_borderWidth="3dp"
+                app:JV_buttonColor="#FF5722" />
+
+            <!-- 급식 제어 -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="25dp"
+                app:cardElevation="3dp">
+
+                <Button
+                    android:id="@+id/btnFeedNow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🍽️ 급식하기"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/feed_button_bg"
+                    android:textColor="@color/feed_button_text"
+                    android:padding="16dp"
+                    android:enabled="false" />
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+
+        <!-- 상호작용 컨테이너 (토글) -->
+        <LinearLayout
+            android:id="@+id/interactionContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:visibility="gone">
+
+            <!-- 기본 제어 버튼들 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="20dp">
+
+                <!-- 레이저 토글 버튼 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="#FFEBEE"
+                    android:layout_marginEnd="8dp">
+
+                    <ToggleButton
+                        android:id="@+id/btnLaser"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:textOn="🔴 레이저"
+                        android:textOff="⚪ 레이저"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/laser_toggle_bg"
+                        android:textColor="#D32F2F"
+                        android:padding="12dp" />
+                </androidx.cardview.widget.CardView>
+
+                <!-- 음성 송신 토글 -->
+                <ToggleButton
+                    android:id="@+id/btnRecord"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:textOn="🎤 음성 OFF"
+                    android:textOff="🎤 음성 ON"
+                    android:textSize="12sp"
+                    android:background="@drawable/audio_toggle_bg"
+                    android:textColor="@color/audio_toggle_text_color"
+                    android:layout_marginEnd="8dp" />
+
+                <!-- 음성 수신 토글 -->
+                <ToggleButton
+                    android:id="@+id/btnReceiveAudio"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:textOn="🔊 수신 OFF"
+                    android:textOff="🔊 수신 ON"
+                    android:textSize="12sp"
+                    android:background="@drawable/audio_toggle_bg"
+                    android:textColor="@color/audio_toggle_text_color"
+                    android:layout_marginEnd="8dp" />
+
+                <!-- 놀아주기 버튼 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="#FFF3E0">
+
+                    <Button
+                        android:id="@+id/btnFire"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="⚽발사!"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/play_button_bg"
+                        android:textColor="#FF9800"
+                        android:padding="12dp" />
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
+            <!-- 개선된 레이저 방향 조절 섹션 -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:background="@drawable/laser_control_bg">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎯 레이저 포인터 조절"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#D32F2F"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- 슬라이더 컨테이너 -->
+                    <LinearLayout
+                        android:id="@+id/sliderContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <!-- 레이저 각도 표시 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:layout_marginBottom="12dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="수평: "
+                                android:textSize="14sp"
+                                android:textColor="#666666" />
+                            <TextView
+                                android:id="@+id/tvHorizontalAngle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0°"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#D32F2F"
+                                android:layout_marginEnd="20dp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="수직: "
+                                android:textSize="14sp"
+                                android:textColor="#666666" />
+                            <TextView
+                                android:id="@+id/tvVerticalAngle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0°"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#D32F2F" />
+                        </LinearLayout>
+                        <!-- 수직 슬라이더 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="16dp">
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnLaserDown"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:text="@string/arrow_down"
+                                android:textSize="18sp"
+                                android:textColor="#D32F2F"
+                                app:cornerRadius="20dp"
+                                app:backgroundTint="@android:color/white" />
+
+                            <SeekBar
+                                android:id="@+id/seekBarVertical"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:max="180"
+                                android:progress="90"
+                                android:progressTint="#D32F2F"
+                                android:thumbTint="#D32F2F" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnLaserUp"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:text="@string/arrow_up"
+                                android:textSize="18sp"
+                                android:textColor="#D32F2F"
+                                app:cornerRadius="20dp"
+                                app:backgroundTint="@android:color/white" />
+
+                        </LinearLayout>
+                        <!-- 수평 슬라이더 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="16dp">
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnLaserLeft"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:text="@string/arrow_left"
+                                android:textSize="18sp"
+                                android:textColor="#D32F2F"
+                                app:cornerRadius="20dp"
+                                app:backgroundTint="@android:color/white" />
+
+                            <SeekBar
+                                android:id="@+id/seekBarHorizontal"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:max="180"
+                                android:progress="90"
+                                android:progressTint="#D32F2F"
+                                android:thumbTint="#D32F2F" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnLaserRight"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:text="@string/arrow_down"
+                                android:textSize="18sp"
+                                android:textColor="#D32F2F"
+                                app:cornerRadius="20dp"
+                                app:backgroundTint="@android:color/white" />
+
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
