@@ -29,6 +29,9 @@ import com.example.graduateproject.utils.WebSocketClient;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -68,6 +71,12 @@ public class ControlActivity extends AppCompatActivity {
     private Runnable longPressRunnable;
     private String feedMode = "manual";  // 급식 모드 기본값
     private MaterialButtonToggleGroup precisionToggleGroup;
+
+    // 초음파 센서 관련 변수들
+    private Handler distanceHandler = new Handler(Looper.getMainLooper());
+    private Runnable distanceRunnable;
+    private static final int DISTANCE_CHECK_INTERVAL = 3000; // 3초마다 체크
+    private boolean isDistanceMonitoring = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,7 +163,7 @@ public class ControlActivity extends AppCompatActivity {
                 startAudioStreaming();
             } else {
                 stopAudioStreaming();
-            }
+            }z
         });
 
         btnReceiveAudio.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -383,6 +392,9 @@ public class ControlActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // 거리 모니터링 중지
+        stopDistanceMonitoring();
+        
         if (wsClient != null) wsClient.close();
         if (audioSendWebSocket != null) audioSendWebSocket.close(1000, "종료");
         if (audioReceiveWebSocket != null) audioReceiveWebSocket.close(1000, "종료");
@@ -396,8 +408,114 @@ public class ControlActivity extends AppCompatActivity {
         private final Handler handler = new Handler(Looper.getMainLooper());
         
         @Override
+        public void onOpen() {
+            handler.post(() -> {
+                commandText.setText("🤖 현재 상태: 연결됨");
+                // WebSocket 연결 후 초음파 센서 모니터링 시작
+                startDistanceMonitoring();
+            });
+        }
+        
+        @Override
         public void onMessage(String text) {
-            handler.post(() -> commandText.setText("서버 응답: " + text));
+            handler.post(() -> {
+                // 초음파 센서 응답 처리
+                if (text.startsWith("distance:") || text.startsWith("error:")) {
+                    handleDistanceResponse(text);
+                } else {
+                    commandText.setText("서버 응답: " + text);
+                }
+            });
+        }
+        
+        @Override
+        public void onClose(int code, String reason) {
+            handler.post(() -> {
+                commandText.setText("🤖 현재 상태: 연결 끊김");
+                stopDistanceMonitoring();
+            });
+        }
+        
+        @Override
+        public void onFailure(Throwable t) {
+            handler.post(() -> {
+                commandText.setText("🤖 현재 상태: 연결 실패");
+                stopDistanceMonitoring();
+            });
+        }
+    }
+
+    // 초음파 센서 거리 측정 시작
+    private void startDistanceMonitoring() {
+        if (isDistanceMonitoring) return;
+        
+        isDistanceMonitoring = true;
+        
+        // 즉시 첫 번째 거리 측정 요청
+        requestDistance();
+        
+        // 3초마다 거리 측정 요청
+        distanceRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isDistanceMonitoring) {
+                    requestDistance();
+                    distanceHandler.postDelayed(this, DISTANCE_CHECK_INTERVAL);
+                }
+            }
+        };
+        distanceHandler.postDelayed(distanceRunnable, DISTANCE_CHECK_INTERVAL);
+    }
+    
+    // 초음파 센서 거리 측정 중지
+    private void stopDistanceMonitoring() {
+        isDistanceMonitoring = false;
+        if (distanceRunnable != null) {
+            distanceHandler.removeCallbacks(distanceRunnable);
+            distanceRunnable = null;
+        }
+    }
+    
+    // 거리 측정 요청
+    private void requestDistance() {
+        try {
+            JSONObject request = new JSONObject();
+            request.put("type", "ultrasonic");
+            request.put("action", "get_distance");
+            wsClient.sendText(request.toString());
+        } catch (JSONException e) {
+            Log.e("Distance", "거리 측정 요청 JSON 생성 실패", e);
+        }
+    }
+    
+    // 거리 응답 처리
+    private void handleDistanceResponse(String response) {
+        try {
+            // "distance: " 또는 "error: "로 시작하는지 확인
+            if (response.startsWith("distance:")) {
+                // 거리 측정 성공
+                String distanceStr = response.substring("distance:".length()).trim();
+                double distance = Double.parseDouble(distanceStr);
+                
+                if (distance <= 5.0) {
+                    distanceText.setText("📏 밥통 상태: 비어있음 (" + String.format("%.1f", distance) + "cm)");
+                } else {
+                    distanceText.setText("📏 밥통 상태: 차 있음 (" + String.format("%.1f", distance) + "cm)");
+                }
+            } else if (response.startsWith("error:")) {
+                // 측정 실패
+                String errorMsg = response.substring("error:".length()).trim();
+                distanceText.setText("📏 밥통 상태: 측정 불가 (" + errorMsg + ")");
+            } else {
+                // 알 수 없는 응답 형식
+                distanceText.setText("📏 밥통 상태: 응답 오류");
+            }
+        } catch (NumberFormatException e) {
+            Log.e("Distance", "거리 값 파싱 실패: " + response, e);
+            distanceText.setText("📏 밥통 상태: 값 오류");
+        } catch (Exception e) {
+            Log.e("Distance", "거리 응답 처리 실패: " + response, e);
+            distanceText.setText("📏 밥통 상태: 처리 오류");
         }
     }
 
