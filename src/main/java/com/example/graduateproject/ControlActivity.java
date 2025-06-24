@@ -116,7 +116,8 @@ public class ControlActivity extends AppCompatActivity {
         });
 
         // 6. WebSocket 및 영상 설정
-        String wsUrl = "wss://srg2361.ngrok.app/ws";
+        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
+        String wsUrl = prefs.getString("server_url", "wss://srg2361.ngrok.app/ws");
         String videoUrl = "https://srg2361.ngrok.app/mjpeg";
         wsClient = new WebSocketClient();
         wsClient.connect(wsUrl, new SimpleListener());
@@ -163,7 +164,7 @@ public class ControlActivity extends AppCompatActivity {
                 startAudioStreaming();
             } else {
                 stopAudioStreaming();
-            }z
+            }
         });
 
         btnReceiveAudio.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -419,9 +420,11 @@ public class ControlActivity extends AppCompatActivity {
         @Override
         public void onMessage(String text) {
             handler.post(() -> {
-                // 초음파 센서 응답 처리
                 if (text.startsWith("distance:") || text.startsWith("error:")) {
                     handleDistanceResponse(text);
+                } else if (text.trim().startsWith("{") && text.trim().endsWith("}")) {
+                    // 명령 처리 결과 JSON은 로그만 남기고 UI에는 표시하지 않음
+                    Log.d("WebSocket", "명령 처리 결과: " + text);
                 } else {
                     commandText.setText("서버 응답: " + text);
                 }
