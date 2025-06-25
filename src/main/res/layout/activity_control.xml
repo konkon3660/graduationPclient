@@ -159,7 +159,9 @@
                         android:textStyle="bold"
                         android:background="@drawable/laser_toggle_bg"
                         android:textColor="#D32F2F"
-                        android:padding="12dp" />
+                        android:padding="12dp"
+                        android:fontFamily="sans-serif"
+                        android:textSize="22sp" />
                 </androidx.cardview.widget.CardView>
 
                 <!-- 음성 송신 토글 -->
@@ -173,7 +175,9 @@
                     android:textSize="12sp"
                     android:background="@drawable/audio_toggle_bg"
                     android:textColor="@color/audio_toggle_text_color"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:fontFamily="sans-serif"
+                    android:textSize="22sp" />
 
                 <!-- 음성 수신 토글 -->
                 <ToggleButton
@@ -186,7 +190,9 @@
                     android:textSize="12sp"
                     android:background="@drawable/audio_toggle_bg"
                     android:textColor="@color/audio_toggle_text_color"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:fontFamily="sans-serif"
+                    android:textSize="22sp" />
 
                 <!-- 놀아주기 버튼 -->
                 <androidx.cardview.widget.CardView
@@ -206,7 +212,9 @@
                         android:textStyle="bold"
                         android:background="@drawable/play_button_bg"
                         android:textColor="#FF9800"
-                        android:padding="12dp" />
+                        android:padding="12dp"
+                        android:fontFamily="sans-serif"
+                        android:textSize="22sp" />
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
 
@@ -289,11 +297,12 @@
                             android:layout_marginBottom="16dp">
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnLaserDown"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
                                 android:text="@string/arrow_down"
-                                android:textSize="18sp"
+                                android:textSize="22sp"
                                 android:textColor="#D32F2F"
+                                android:fontFamily="sans-serif"
                                 app:cornerRadius="20dp"
                                 app:backgroundTint="@android:color/white" />
 
@@ -308,11 +317,12 @@
                                 android:thumbTint="#D32F2F" />
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnLaserUp"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
                                 android:text="@string/arrow_up"
-                                android:textSize="18sp"
+                                android:textSize="22sp"
                                 android:textColor="#D32F2F"
+                                android:fontFamily="sans-serif"
                                 app:cornerRadius="20dp"
                                 app:backgroundTint="@android:color/white" />
 
@@ -326,11 +336,12 @@
                             android:layout_marginBottom="16dp">
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnLaserLeft"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
                                 android:text="@string/arrow_left"
-                                android:textSize="18sp"
+                                android:textSize="22sp"
                                 android:textColor="#D32F2F"
+                                android:fontFamily="sans-serif"
                                 app:cornerRadius="20dp"
                                 app:backgroundTint="@android:color/white" />
 
@@ -345,11 +356,12 @@
                                 android:thumbTint="#D32F2F" />
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnLaserRight"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
                                 android:text="@string/arrow_right"
-                                android:textSize="18sp"
+                                android:textSize="22sp"
                                 android:textColor="#D32F2F"
+                                android:fontFamily="sans-serif"
                                 app:cornerRadius="20dp"
                                 app:backgroundTint="@android:color/white" />
 

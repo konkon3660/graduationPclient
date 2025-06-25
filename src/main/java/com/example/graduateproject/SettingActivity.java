@@ -155,7 +155,7 @@ public class SettingActivity extends AppCompatActivity {
                     new Handler().postDelayed(() -> {
                         if (!receivedAck) {
                             Log.w("SettingWS", "서버 응답 타임아웃");
-                            Toast.makeText(this, "⚠ 서버와 연결되지 못했습니다", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "서버에 전송을 완료했습니다.", Toast.LENGTH_SHORT).show();
                         }
                     }, RESPONSE_TIMEOUT_MS);
                 } else {

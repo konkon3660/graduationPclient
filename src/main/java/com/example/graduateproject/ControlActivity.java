@@ -78,6 +78,8 @@ public class ControlActivity extends AppCompatActivity {
     private static final int DISTANCE_CHECK_INTERVAL = 3000; // 3초마다 체크
     private boolean isDistanceMonitoring = false;
 
+    private String lastSentDirection = "stop"; // 마지막으로 전송한 조이스틱 방향
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -134,55 +136,66 @@ public class ControlActivity extends AppCompatActivity {
         }
         stopAudioPlayback();
 
+        // show_toast 설정값 읽기
+        boolean showToast = getSharedPreferences("app_settings", MODE_PRIVATE).getBoolean("show_toast", true);
         // 급식 버튼 클릭 동작 정의 (초기에는 onResume에서 활성화 상태 설정)
         btnFeedNow.setOnClickListener(v -> {
             if (!feedMode.equals("manual")) {
-                Toast.makeText(this, "자동 급식 모드에서는 수동 급식이 불가능합니다.", Toast.LENGTH_SHORT).show();
+                if (showToast) Toast.makeText(this, "자동 급식 모드에서는 수동 급식이 불가능합니다.", Toast.LENGTH_SHORT).show();
             } else {
-                sendCommand("feed_now");
+                int feedAmount = getSharedPreferences("app_settings", MODE_PRIVATE).getInt("feed_amount", 5); // 기본값 5회
+                if (feedAmount == 1) {
+                    sendCommand("feed");
+                } else {
+                    sendCommand("feed:" + feedAmount);
+                }
+                if (showToast) Toast.makeText(this, "급식 " + feedAmount + "회 실행", Toast.LENGTH_SHORT).show();
             }
         });
-
         btnLaser.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 sendCommand("laser_on");
                 isLaserOn = true;
+                if (showToast) Toast.makeText(this, "레이저 ON", Toast.LENGTH_SHORT).show();
             } else {
                 sendCommand("laser_off");
                 isLaserOn = false;
+                if (showToast) Toast.makeText(this, "레이저 OFF", Toast.LENGTH_SHORT).show();
             }
         });
-
-        btnFire.setOnClickListener(v -> sendCommand("fire"));
-
+        btnFire.setOnClickListener(v -> {
+            sendCommand("fire");
+            if (showToast) Toast.makeText(this, "공 발사!", Toast.LENGTH_SHORT).show();
+        });
         btnRecord.setOnClickListener(v -> {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 200);
+                if (showToast) Toast.makeText(this, "오디오 녹음 권한이 필요합니다", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!isStreamingAudio) {
                 startAudioStreaming();
+                if (showToast) Toast.makeText(this, "음성 송신 시작", Toast.LENGTH_SHORT).show();
             } else {
                 stopAudioStreaming();
+                if (showToast) Toast.makeText(this, "음성 송신 중지", Toast.LENGTH_SHORT).show();
             }
         });
-
         btnReceiveAudio.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                // 음성 수신 시작
                 sendCommand("audio_receive_on");
                 connectAudioWebSockets();
+                if (showToast) Toast.makeText(this, "음성 수신 시작", Toast.LENGTH_SHORT).show();
             } else {
-                // 음성 수신 종료
                 sendCommand("audio_receive_off");
                 if (audioReceiveWebSocket != null) {
                     audioReceiveWebSocket.close(1000, "수신 중지");
                     audioReceiveWebSocket = null;
                 }
                 stopAudioPlayback();
+                if (showToast) Toast.makeText(this, "음성 수신 중지", Toast.LENGTH_SHORT).show();
             }
         });
-
         joystickView.setOnMoveListener((angle, strength) -> {
             String direction;
             if (strength < 30) direction = "stop";
@@ -190,33 +203,35 @@ public class ControlActivity extends AppCompatActivity {
             else if (angle >= 135 && angle < 225) direction = "left";
             else if (angle >= 225 && angle < 315) direction = "backward";
             else direction = "right";
-            sendCommand(direction);
+            if (!direction.equals(lastSentDirection)) {
+                sendCommand(direction);
+                lastSentDirection = direction;
+                if (showToast) Toast.makeText(this, "이동: " + direction, Toast.LENGTH_SHORT).show();
+            }
         });
-
-        // 레이저 미세조정 버튼(상하좌우)
-        btnLaserUp = findViewById(R.id.btnLaserUp);
-        btnLaserDown = findViewById(R.id.btnLaserDown);
-        btnLaserLeft = findViewById(R.id.btnLaserLeft);
-        btnLaserRight = findViewById(R.id.btnLaserRight);
         btnLaserUp.setOnClickListener(v -> {
             laserY = clamp(laserY - laserSpeed, LASER_MIN_ANGLE, LASER_MAX_ANGLE);
             seekBarVertical.setProgress(laserY);
             sendLaserCommandY();
+            if (showToast) Toast.makeText(this, "레이저 ↑", Toast.LENGTH_SHORT).show();
         });
         btnLaserDown.setOnClickListener(v -> {
             laserY = clamp(laserY + laserSpeed, LASER_MIN_ANGLE, LASER_MAX_ANGLE);
             seekBarVertical.setProgress(laserY);
             sendLaserCommandY();
+            if (showToast) Toast.makeText(this, "레이저 ↓", Toast.LENGTH_SHORT).show();
         });
         btnLaserLeft.setOnClickListener(v -> {
             laserX = clamp(laserX - laserSpeed, LASER_MIN_ANGLE, LASER_MAX_ANGLE);
             seekBarHorizontal.setProgress(laserX);
             sendLaserCommandX();
+            if (showToast) Toast.makeText(this, "레이저 ←", Toast.LENGTH_SHORT).show();
         });
         btnLaserRight.setOnClickListener(v -> {
             laserX = clamp(laserX + laserSpeed, LASER_MIN_ANGLE, LASER_MAX_ANGLE);
             seekBarHorizontal.setProgress(laserX);
             sendLaserCommandX();
+            if (showToast) Toast.makeText(this, "레이저 →", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -395,7 +410,13 @@ public class ControlActivity extends AppCompatActivity {
         super.onDestroy();
         // 거리 모니터링 중지
         stopDistanceMonitoring();
-        
+        // WebView 연결 해제
+        if (mjpegWebView != null) {
+            mjpegWebView.loadUrl("about:blank");
+            mjpegWebView.clearHistory();
+            mjpegWebView.clearCache(true);
+            mjpegWebView.destroy();
+        }
         if (wsClient != null) wsClient.close();
         if (audioSendWebSocket != null) audioSendWebSocket.close(1000, "종료");
         if (audioReceiveWebSocket != null) audioReceiveWebSocket.close(1000, "종료");
@@ -423,8 +444,27 @@ public class ControlActivity extends AppCompatActivity {
                 if (text.startsWith("distance:") || text.startsWith("error:")) {
                     handleDistanceResponse(text);
                 } else if (text.trim().startsWith("{") && text.trim().endsWith("}")) {
-                    // 명령 처리 결과 JSON은 로그만 남기고 UI에는 표시하지 않음
-                    Log.d("WebSocket", "명령 처리 결과: " + text);
+                    // JSON 메시지 처리
+                    try {
+                        JSONObject obj = new JSONObject(text);
+                        if (obj.has("type") && "ultrasonic".equals(obj.getString("type"))) {
+                            if (obj.has("distance")) {
+                                double distance = obj.getDouble("distance");
+                                if (distance <= 5.0) {
+                                    distanceText.setText("📏 밥통 상태: 차 있음 (" + String.format("%.1f", distance) + "cm)");
+                                } else {
+                                    distanceText.setText("📏 밥통 상태: 비어 있음 (" + String.format("%.1f", distance) + "cm)");
+                                }
+                            } else if (obj.has("error")) {
+                                String errorMsg = obj.getString("error");
+                                distanceText.setText("📏 밥통 상태: 측정 불가 (" + errorMsg + ")");
+                            }
+                        }
+                        // 명령 처리 결과 JSON은 로그만 남기고 UI에는 표시하지 않음
+                        Log.d("WebSocket", "명령 처리 결과: " + text);
+                    } catch (JSONException e) {
+                        Log.e("WebSocket", "JSON 파싱 오류: " + text, e);
+                    }
                 } else {
                     commandText.setText("서버 응답: " + text);
                 }
@@ -501,9 +541,9 @@ public class ControlActivity extends AppCompatActivity {
                 double distance = Double.parseDouble(distanceStr);
                 
                 if (distance <= 5.0) {
-                    distanceText.setText("📏 밥통 상태: 비어있음 (" + String.format("%.1f", distance) + "cm)");
-                } else {
                     distanceText.setText("📏 밥통 상태: 차 있음 (" + String.format("%.1f", distance) + "cm)");
+                } else {
+                    distanceText.setText("📏 밥통 상태: 비어있음 (" + String.format("%.1f", distance) + "cm)");
                 }
             } else if (response.startsWith("error:")) {
                 // 측정 실패
@@ -577,7 +617,16 @@ public class ControlActivity extends AppCompatActivity {
             if (!feedMode.equals("manual")) {
                 Toast.makeText(this, "자동 급식 모드에서는 수동 급식이 불가능합니다.", Toast.LENGTH_SHORT).show();
             } else {
-                sendCommand("feed_now");
+                // SettingActivity에서 저장된 급식 횟수 읽기
+                int feedAmount = getSharedPreferences("app_settings", MODE_PRIVATE).getInt("feed_amount", 5); // 기본값 5회
+                
+                if (feedAmount == 1) {
+                    sendCommand("feed");
+                } else {
+                    sendCommand("feed:" + feedAmount);
+                }
+                
+                Toast.makeText(this, "급식 " + feedAmount + "회 실행", Toast.LENGTH_SHORT).show();
             }
         });
         // 음성 송신 토글
@@ -617,7 +666,10 @@ public class ControlActivity extends AppCompatActivity {
             else if (angle >= 135 && angle < 225) direction = "left";
             else if (angle >= 225 && angle < 315) direction = "backward";
             else direction = "right";
-            sendCommand(direction);
+            if (!direction.equals(lastSentDirection)) {
+                sendCommand(direction);
+                lastSentDirection = direction;
+            }
         });
         // 레이저 미세조정 버튼(상하좌우)
         btnLaserUp = findViewById(R.id.btnLaserUp);
